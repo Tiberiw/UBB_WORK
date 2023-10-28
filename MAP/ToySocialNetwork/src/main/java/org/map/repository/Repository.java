@@ -2,12 +2,14 @@ package org.map.repository;
 
 import org.map.domain.Entity;
 
+import java.util.Optional;
+
 public interface Repository<ID, E extends Entity<ID>> {
 
-    E save(E entity);
-    E findOne(ID id);
+    Optional<E> save(E entity);
+    Optional<E> findOne(ID id);
     Iterable<E> findAll();
-    E update(E entity);
-    E delete(ID id);
+    Optional<E> update(E entity);
+    Optional<E> delete(ID id);
 
 }

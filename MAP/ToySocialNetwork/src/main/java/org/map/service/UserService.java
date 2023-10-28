@@ -3,8 +3,9 @@ package org.map.service;
 import org.map.domain.User;
 import org.map.exception.RepositoryException;
 import org.map.exception.ValidatorException;
-import org.map.repository.InMemoryRepository;
 import org.map.repository.Repository;
+
+import java.util.Optional;
 
 public class UserService {
 
@@ -14,13 +15,13 @@ public class UserService {
         this.Repository = Repository;
     }
 
-    public User saveToRepository(String firstName, String secondName) throws IllegalArgumentException, ValidatorException, RepositoryException{
+    public Optional<User> saveToRepository(String firstName, String secondName) throws IllegalArgumentException, ValidatorException, RepositoryException{
 
         User newUser = new User(firstName,secondName);
         return Repository.save(newUser);
     }
 
-    public User getFromRepository(Long id) throws RepositoryException{
+    public Optional<User> getFromRepository(Long id) throws RepositoryException{
         return Repository.findOne(id);
     }
 
@@ -28,15 +29,17 @@ public class UserService {
         return Repository.findAll();
     }
 
-    public User updateToRepository(Long id, String firstName, String lastName) throws IllegalArgumentException, ValidatorException, RepositoryException {
+    public Optional<User> updateToRepository(Long id, String firstName, String lastName) throws IllegalArgumentException, ValidatorException, RepositoryException {
 
-        User oldUser = Repository.findOne(id);
-        oldUser.setFirstName(firstName);
-        oldUser.setLastName(lastName);
-        return Repository.update(oldUser);
+        Optional<User> oldUser = Repository.findOne(id);
+        oldUser.ifPresent( o -> {
+           oldUser.get().setFirstName(firstName);
+           oldUser.get().setLastName(lastName);
+        });
+        return Repository.update(oldUser.get());
     }
 
-    public User removeFromRepository(Long id) throws RepositoryException {
+    public Optional<User> removeFromRepository(Long id) throws RepositoryException {
         return Repository.delete(id);
     }
 

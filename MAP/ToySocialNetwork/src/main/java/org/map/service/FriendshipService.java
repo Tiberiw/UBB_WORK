@@ -9,6 +9,7 @@ import org.map.utils.Graph;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 public class FriendshipService{
 
@@ -21,20 +22,24 @@ public class FriendshipService{
         this.userRepository = userRepository;
     }
 
-    public Friendship saveToRepository(Long el1, Long el2) {
+    public Optional<Friendship> saveToRepository(Long el1, Long el2) {
 
-        User user1 = userRepository.findOne(el1);
-        User user2 = userRepository.findOne(el2);
 
-        Friendship newFriendship = el1 < el2 ?
-                new Friendship(user1,user2, LocalDateTime.now()) :
-                new Friendship(user2,user1, LocalDateTime.now());
+        Optional<User> user1 = userRepository.findOne(el1);
+        Optional<User> user2 = userRepository.findOne(el2);
 
-        return friendshipRepository.save(newFriendship);
+        if(user1.isPresent() && user2.isPresent()) {
+            Friendship newFriendship = el1 < el2 ?
+                    new Friendship(user1.get(),user2.get(), LocalDateTime.now()) :
+                    new Friendship(user2.get(),user1.get(), LocalDateTime.now());
+
+            return friendshipRepository.save(newFriendship);
+        }
+        return Optional.empty();
     }
 
-    public Friendship getFromRepository(Long idFirstUser, Long idSecondUser) {
-        return friendshipRepository.findOne(new Pair<Long,Long>(idFirstUser,idSecondUser));
+    public Optional<Friendship> getFromRepository(Long idFirstUser, Long idSecondUser) {
+        return friendshipRepository.findOne(new Pair<>(idFirstUser,idSecondUser));
     }
 
     public Iterable<Friendship> getAll() {
@@ -46,7 +51,7 @@ public class FriendshipService{
     }
 
 
-    public Friendship removeFromRepository(Long idFirstUser, Long idSecondUser) {
+    public Optional<Friendship> removeFromRepository(Long idFirstUser, Long idSecondUser) {
 
         Pair<Long,Long> id = idFirstUser < idSecondUser ?
                 new Pair<>(idFirstUser,idSecondUser) :
@@ -71,7 +76,7 @@ public class FriendshipService{
         friendshipRepository.findAll().forEach(allEdges::add);
 
         //Convert friendship object into a pair of Users
-        var list = allEdges.stream().map(el -> new Pair<User,User>(el.getFirstUser(),el.getSecondUser()))
+        var list = allEdges.stream().map(el -> new Pair<>(el.getFirstUser(),el.getSecondUser()))
                 .toList();
 
         //Get all users (nodes)

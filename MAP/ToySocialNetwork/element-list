@@ -1,0 +1,8 @@
+org.map
+org.map.domain
+org.map.exception
+org.map.repository
+org.map.service
+org.map.ui
+org.map.utils
+org.map.validator

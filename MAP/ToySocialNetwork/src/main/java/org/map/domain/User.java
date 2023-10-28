@@ -13,6 +13,10 @@ public class User extends Entity<Long>{
         this.id = ++currentIndex;
     }
 
+    public User getInstance() {
+        return this;
+    }
+
     public String getFirstName() {
         return firstName;
     }

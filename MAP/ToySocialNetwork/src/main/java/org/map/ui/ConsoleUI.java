@@ -7,12 +7,13 @@ import org.map.exception.ValidatorException;
 import org.map.service.FriendshipService;
 import org.map.service.UserService;
 
+import java.util.Optional;
 import java.util.Scanner;
 
 public class ConsoleUI {
 
-    private UserService userService;
-    private FriendshipService friendshipService;
+    private final UserService userService;
+    private final FriendshipService friendshipService;
     private static final Scanner userInput = new Scanner(System.in);
 
     public ConsoleUI(UserService userService, FriendshipService friendshipService) {
@@ -25,13 +26,15 @@ public class ConsoleUI {
             System.out.println("Provide 2 parameters!");
             return;
         }
-
         String firstName = params[1];
         String lastName = params[2];
 
-        User newUser = userService.saveToRepository(firstName,lastName);
-        System.out.println(newUser.toString());
-        System.out.println("User created!");
+        Optional<User> newUser = userService.saveToRepository(firstName,lastName);
+        newUser.ifPresent( user -> {
+            System.out.println(user);
+            System.out.println("User created!");
+        });
+
     }
 
     private void rmUser(String[] params) {
@@ -40,11 +43,17 @@ public class ConsoleUI {
             return;
         }
         String id = params[1];
-        User oldUser = userService.getFromRepository(Long.valueOf(id));
-        friendshipService.removeAllFriends(oldUser);
-        var user = userService.removeFromRepository(Long.valueOf(id));
-        System.out.println(oldUser.toString());
-        System.out.println("User removed");
+        Optional<User> oldUser = userService.getFromRepository(Long.valueOf(id));
+        oldUser.ifPresent( user -> {
+
+            friendshipService.removeAllFriends(user);
+
+            userService.removeFromRepository(Long.valueOf(id));
+            System.out.println(user);
+            System.out.println("User removed");
+
+        });
+
     }
 
     private void getAllUsers() {
@@ -60,10 +69,12 @@ public class ConsoleUI {
 
         Long firstId = Long.valueOf(params[1]);
         Long secondId = Long.valueOf(params[2]);
+        Optional<Friendship> newFriendship = friendshipService.saveToRepository(firstId, secondId);
+        newFriendship.ifPresent( friendship -> {
+            System.out.println(friendship);
+            System.out.println("Friendship added!");
+        });
 
-        Friendship newFriendship = friendshipService.saveToRepository(firstId, secondId);
-        System.out.println(newFriendship.toString());
-        System.out.println("Friendship added!");
     }
 
     private void rmFriendship(String[] params) {
@@ -75,9 +86,13 @@ public class ConsoleUI {
         Long firstId = Long.valueOf(params[1]);
         Long secondId = Long.valueOf(params[2]);
 
-        Friendship oldFriendship = friendshipService.removeFromRepository(firstId, secondId);
-        System.out.println(oldFriendship.toString());
-        System.out.println("Friendship removed!");
+        Optional<Friendship> oldFriendship = friendshipService.removeFromRepository(firstId, secondId);
+
+        oldFriendship.ifPresent(friendship -> {
+            System.out.println(friendship);
+            System.out.println("Friendship removed!");
+        });
+
     }
 
     private void getAllFriendships() {
@@ -204,9 +219,7 @@ public class ConsoleUI {
                         System.out.println("Incorrect command!");
                 }
 
-            }catch(IllegalArgumentException e) {
-                e.printStackTrace();
-            }catch(ValidatorException | RepositoryException e) {
+            }catch(IllegalArgumentException | ValidatorException | RepositoryException e) {
                 System.out.println(e.getMessage());
             }
 
