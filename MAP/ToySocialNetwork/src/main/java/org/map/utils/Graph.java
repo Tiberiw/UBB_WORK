@@ -25,7 +25,8 @@ public class Graph<E extends Entity<?>> {
    }
 
    public void addVertex(E vertex) {
-        adjacencyList.put(vertex, new ArrayList<E>());
+        if(!adjacencyList.containsKey(vertex))
+            adjacencyList.put(vertex, new ArrayList<E>());
    }
 
    public void addEdge(E source, E destination) {
@@ -47,26 +48,10 @@ public class Graph<E extends Entity<?>> {
    }
 
    public Integer getEdgesCount() {
-
-       int count = 0;
-
-       for(E vertex : adjacencyList.keySet()) {
-           count += adjacencyList.get(vertex).size();
-       }
-
        return adjacencyList.values()
                .stream()
                .mapToInt(List::size)
                .sum() / 2;
-//       return adjacencyList.values()
-//               .stream()
-//               .mapToInt(List::size)
-//               .sum() / 2;
-//       return adjacencyList.values()
-//               .stream()
-//               .mapToInt(List::size)
-//               .sum() / 2;
-       //salut
    }
 
    public boolean hasVertex(E vertex) {

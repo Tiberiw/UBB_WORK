@@ -23,6 +23,5 @@ public class Main {
         SocialNetwork app = SocialNetwork.getInstance();
         app.run();
 
-
     }
 }

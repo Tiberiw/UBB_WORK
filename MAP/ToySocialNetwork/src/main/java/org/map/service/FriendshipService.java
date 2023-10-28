@@ -21,34 +21,6 @@ public class FriendshipService{
         this.userRepository = userRepository;
     }
 
-    private void loadNetwork() {
-
-        List<Friendship> allEdges = new ArrayList<>();
-        friendshipRepository.findAll().forEach(allEdges::add);
-        var list = allEdges.stream().map(el -> new Pair<User,User>(el.getFirstUser(),el.getSecondUser()))
-                .toList();
-
-        List<User> allVertices = new ArrayList<>();
-        userRepository.findAll().forEach(allVertices::add);
-
-        Network.setAdjacencyList(list, allVertices);
-    }
-
-    public String showNetwork() {
-        loadNetwork();
-        return Network.toString();
-    }
-
-    public Integer getCommunityNumber() {
-        loadNetwork();
-        return Network.getConnectedComponentsNumber();
-    }
-
-    public String getCommunities() {
-        loadNetwork();
-        return Network.showConnectedComponents();
-    }
-
     public Friendship saveToRepository(Long el1, Long el2) {
 
         User user1 = userRepository.findOne(el1);
@@ -69,30 +41,65 @@ public class FriendshipService{
         return friendshipRepository.findAll();
     }
 
+    public Friendship updateToRepository() {
+        return null;
+    }
+
+
     public Friendship removeFromRepository(Long idFirstUser, Long idSecondUser) {
 
         Pair<Long,Long> id = idFirstUser < idSecondUser ?
                 new Pair<>(idFirstUser,idSecondUser) :
                 new Pair<>(idSecondUser,idFirstUser);
 
+        //Remove friendship from repository
         return friendshipRepository.delete(id);
     }
 
     public void removeAllFriends(User user) {
         loadNetwork();
+        //Get all friends of a user
         List<User> allNeighbours = Network.getAllNeighbours(user);
+
+        //Remove all friendships of the user
         allNeighbours.forEach( e -> removeFromRepository(user.getID(),e.getID()));
     }
 
+    private void loadNetwork() {
+
+        List<Friendship> allEdges = new ArrayList<>();
+        friendshipRepository.findAll().forEach(allEdges::add);
+
+        //Convert friendship object into a pair of Users
+        var list = allEdges.stream().map(el -> new Pair<User,User>(el.getFirstUser(),el.getSecondUser()))
+                .toList();
+
+        //Get all users (nodes)
+        List<User> allVertices = new ArrayList<>();
+        userRepository.findAll().forEach(allVertices::add);
+
+        //Set network adjacency list
+        Network.setAdjacencyList(list, allVertices);
+    }
+
+    public String showNetwork() {
+        loadNetwork();
+        return Network.toString();
+    }
+
+    public String getCommunities() {
+        loadNetwork();
+        return Network.showConnectedComponents();
+    }
+
+    public Integer getCommunityNumber() {
+        loadNetwork();
+        return Network.getConnectedComponentsNumber();
+    }
 
     public String getMostSocial() {
         loadNetwork();
         return Network.showMostSocial();
     }
-
-    public Friendship updateToRepository() {
-        return null;
-    }
-
 
 }
