@@ -2,17 +2,13 @@ package org.map.utils;
 
 import org.map.domain.Entity;
 import org.map.domain.Pair;
-
-import javax.naming.PartialResultException;
-import java.nio.file.SimpleFileVisitor;
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class Graph<E extends Entity<?>> {
 
    private final Map<E, List<E>> adjacencyList;
 
-    public Graph() {
+   public Graph() {
        adjacencyList = new HashMap<>();
    }
 
@@ -26,17 +22,13 @@ public class Graph<E extends Entity<?>> {
 
    public void addVertex(E vertex) {
         if(!adjacencyList.containsKey(vertex))
-            adjacencyList.put(vertex, new ArrayList<E>());
+            adjacencyList.put(vertex, new ArrayList<>());
    }
 
    public void addEdge(E source, E destination) {
 
-       if(!adjacencyList.containsKey(source))
-           addVertex(source);
-
-       if(!adjacencyList.containsKey(destination))
-           addVertex(destination);
-
+       addVertex(source);
+       addVertex(destination);
 
        //bidirectional
        adjacencyList.get(source).add(destination);
@@ -88,34 +80,28 @@ public class Graph<E extends Entity<?>> {
        return new ArrayList<>(adjacencyList.keySet());
    }
 
-/*   List<Pair<E,E>> getAllEdges() {
-
-   }*/
-
-    public Integer getConnectedComponentsNumber() {
+   public Integer getConnectedComponentsNumber() {
         return getConnectedComponents().size();
     }
+   public String showConnectedComponents() {
+       List<List<E>> components = getConnectedComponents();
+       StringBuilder componentsString = new StringBuilder();
 
-    public String showConnectedComponents() {
-        List<List<E>> components = getConnectedComponents();
-        StringBuilder componentsString = new StringBuilder();
-        //Can I get the index?
+       for(int i = 0; i < components.size(); i++) {
 
-        for(int i = 0; i < components.size(); i++) {
+           componentsString.append(i+1);
+           componentsString.append(": ");
+           components.get(i).forEach( el -> {
+               componentsString.append(el.getID());
+               componentsString.append(" ");
+           });
+           componentsString.append("\n");
 
-            componentsString.append(i+1);
-            componentsString.append(": ");
-            components.get(i).forEach( el -> {
-                componentsString.append(el.getID());
-                componentsString.append(" ");
-            });
-            componentsString.append("\n");
-
-        }
+       }
 
 
-        return componentsString.toString();
-    }
+       return componentsString.toString();
+   }
 
     public List<List<E>> getConnectedComponents() {
 
@@ -126,7 +112,6 @@ public class Graph<E extends Entity<?>> {
 
         adjacencyList.keySet().forEach( v -> {
             if(!visited.get(v)) {
-                //System.out.println(v.getID());
                 components.add(getConnectedComponent(v,visited));
             }
         });
@@ -178,6 +163,7 @@ public class Graph<E extends Entity<?>> {
 
         //Index of the most social component
         int indexResult = 0;
+
         int maxLength = -1;
 
         for(int i = 0; i < components.size(); i++) {
@@ -190,6 +176,7 @@ public class Graph<E extends Entity<?>> {
 
         }
 
+
         if(maxLength == -1)
             return new LinkedList<>();
 
@@ -201,15 +188,10 @@ public class Graph<E extends Entity<?>> {
         Map<E,Boolean> visited = new HashMap<>();
         adjacencyList.keySet().forEach( v -> visited.put(v,false));
 
-        int maxLength = -1;
-        for( var el : components) {
-            int len = DFS2(el,visited);
-            if(len > maxLength)
-                maxLength = len;
-        }
+        return components.stream()
+                .mapToInt( node -> DFS2(node,visited))
+                .reduce(-1, Integer::max);
 
-
-        return maxLength;
     }
 
     private int DFS2(E currentVertex, Map<E,Boolean> visited) {
@@ -228,6 +210,30 @@ public class Graph<E extends Entity<?>> {
         visited.replace(currentVertex,false);
         return longestPath;
 
+    }
+
+    private int BFS(E currentVertex, Map<E,Boolean> visited) {
+        adjacencyList.keySet().forEach( v -> visited.put(v,false));
+        Map<E, Integer> distance = new HashMap<>();
+        adjacencyList.keySet().forEach( v -> distance.put(v,0));
+
+        Queue<E> queue = new LinkedList<>();
+        queue.add(currentVertex);
+        visited.replace(currentVertex,true);
+
+        while(!queue.isEmpty()) {
+            E current = queue.poll();
+            adjacencyList.get(current).forEach( neighbour -> {
+                if(!visited.get(neighbour) && distance.get(neighbour) < distance.get(current) + 1) {
+                    visited.replace(neighbour,true);
+                    distance.put(neighbour,distance.get(current)+1);
+                    queue.add(neighbour);
+                }
+            });
+        }
+
+
+        return distance.values().stream().reduce(-1,Integer::max);
     }
 
 

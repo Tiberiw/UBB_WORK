@@ -16,9 +16,7 @@ public class UserService {
     }
 
     public Optional<User> saveToRepository(String firstName, String secondName) throws IllegalArgumentException, ValidatorException, RepositoryException{
-
-        User newUser = new User(firstName,secondName);
-        return Repository.save(newUser);
+        return Repository.save( new User(firstName,secondName) );
     }
 
     public Optional<User> getFromRepository(Long id) throws RepositoryException{
@@ -30,13 +28,15 @@ public class UserService {
     }
 
     public Optional<User> updateToRepository(Long id, String firstName, String lastName) throws IllegalArgumentException, ValidatorException, RepositoryException {
+        Optional<User> optionalUser = Repository.findOne(id);
 
-        Optional<User> oldUser = Repository.findOne(id);
-        oldUser.ifPresent( o -> {
-           oldUser.get().setFirstName(firstName);
-           oldUser.get().setLastName(lastName);
+        optionalUser.ifPresent( user -> {
+            user.setFirstName(firstName);
+            user.setLastName(lastName);
+            Repository.update(user);
         });
-        return Repository.update(oldUser.get());
+
+        return optionalUser;
     }
 
     public Optional<User> removeFromRepository(Long id) throws RepositoryException {

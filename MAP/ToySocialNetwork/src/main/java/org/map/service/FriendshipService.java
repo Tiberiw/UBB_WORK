@@ -24,14 +24,14 @@ public class FriendshipService{
 
     public Optional<Friendship> saveToRepository(Long el1, Long el2) {
 
+        //Find the 2 users
+        Optional<User> optionalUser1 = userRepository.findOne(el1);
+        Optional<User> optionalUser2 = userRepository.findOne(el2);
 
-        Optional<User> user1 = userRepository.findOne(el1);
-        Optional<User> user2 = userRepository.findOne(el2);
-
-        if(user1.isPresent() && user2.isPresent()) {
+        if(optionalUser1.isPresent() && optionalUser2.isPresent()) {
             Friendship newFriendship = el1 < el2 ?
-                    new Friendship(user1.get(),user2.get(), LocalDateTime.now()) :
-                    new Friendship(user2.get(),user1.get(), LocalDateTime.now());
+                    new Friendship(optionalUser1.get(),optionalUser2.get(), LocalDateTime.now()) :
+                    new Friendship(optionalUser2.get(),optionalUser1.get(), LocalDateTime.now());
 
             return friendshipRepository.save(newFriendship);
         }
@@ -63,20 +63,21 @@ public class FriendshipService{
 
     public void removeAllFriends(User user) {
         loadNetwork();
-        //Get all friends of a user
-        List<User> allNeighbours = Network.getAllNeighbours(user);
 
         //Remove all friendships of the user
-        allNeighbours.forEach( e -> removeFromRepository(user.getID(),e.getID()));
+        Network.getAllNeighbours(user)
+                .forEach( e -> removeFromRepository(user.getID(),e.getID()));
     }
 
     private void loadNetwork() {
 
-        List<Friendship> allEdges = new ArrayList<>();
-        friendshipRepository.findAll().forEach(allEdges::add);
+        List<Friendship> allFriendships = new ArrayList<>();
+        friendshipRepository.findAll().forEach(allFriendships::add);
 
         //Convert friendship object into a pair of Users
-        var list = allEdges.stream().map(el -> new Pair<>(el.getFirstUser(),el.getSecondUser()))
+        var allEdges = allFriendships
+                .stream()
+                .map(friendship -> new Pair<>(friendship.getFirstUser(),friendship.getSecondUser()))
                 .toList();
 
         //Get all users (nodes)
@@ -84,7 +85,7 @@ public class FriendshipService{
         userRepository.findAll().forEach(allVertices::add);
 
         //Set network adjacency list
-        Network.setAdjacencyList(list, allVertices);
+        Network.setAdjacencyList(allEdges, allVertices);
     }
 
     public String showNetwork() {

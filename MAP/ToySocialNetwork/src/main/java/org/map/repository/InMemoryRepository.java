@@ -32,8 +32,11 @@ public class InMemoryRepository<ID, E extends Entity<ID> > implements Repository
             throw new RepositoryException("Existent ID");
         }
 
-        users.putIfAbsent(entity.getID(),entity);
-        return Optional.of(entity);
+        //If result si null (key not already associated with a value) return the entity
+        //else return null
+        return users.putIfAbsent(entity.getID(),entity) == null ?
+                Optional.of(entity) :
+                Optional.empty();
     }
 
     @Override
@@ -41,8 +44,7 @@ public class InMemoryRepository<ID, E extends Entity<ID> > implements Repository
         if(users.get(id) == null)
             throw new RepositoryException("Nonexistent ID");
 
-
-        return Optional.ofNullable(users.get(id));
+        return Optional.of(users.get(id));
     }
 
     @Override
@@ -61,8 +63,7 @@ public class InMemoryRepository<ID, E extends Entity<ID> > implements Repository
             throw new RepositoryException("Nonexistent ID");
         }
 
-        users.replace(entity.getID(),entity);
-        return Optional.of(entity);
+        return Optional.ofNullable(users.replace(entity.getID(),entity));
     }
 
     @Override

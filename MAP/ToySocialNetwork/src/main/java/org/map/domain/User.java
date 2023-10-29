@@ -4,8 +4,8 @@ import java.util.Objects;
 
 public class User extends Entity<Long>{
 
-    public String firstName;
-    public String lastName;
+    private String firstName;
+    private String lastName;
     private static Long currentIndex = 0L;
     public User(String firstName, String lastName) {
         this.firstName = firstName;

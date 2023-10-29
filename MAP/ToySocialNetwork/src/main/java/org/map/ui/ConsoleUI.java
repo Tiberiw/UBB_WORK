@@ -7,230 +7,182 @@ import org.map.exception.ValidatorException;
 import org.map.service.FriendshipService;
 import org.map.service.UserService;
 
-import java.util.Optional;
-import java.util.Scanner;
+import java.util.*;
+import java.util.function.*;
 
 public class ConsoleUI {
 
     private final UserService userService;
     private final FriendshipService friendshipService;
-    private static final Scanner userInput = new Scanner(System.in);
-
+    private final Map<String,Consumer<String[]>> commands;
+    Supplier<String> requestGetter;
+    Consumer<String> requestHandler;
+    private boolean run;
     public ConsoleUI(UserService userService, FriendshipService friendshipService) {
         this.userService = userService;
         this.friendshipService = friendshipService;
+        this.commands = new HashMap<>();
+        this.run = true;
+        initCommands();
+        initRequests();
+        addInitialUsers();
     }
 
-    private void addUser(String[] params) {
-        if(params.length != 3) {
-            System.out.println("Provide 2 parameters!");
-            return;
-        }
-        String firstName = params[1];
-        String lastName = params[2];
+    private void initCommands() {
 
-        Optional<User> newUser = userService.saveToRepository(firstName,lastName);
-        newUser.ifPresent( user -> {
-            System.out.println(user);
-            System.out.println("User created!");
-        });
+        BiFunction<String[], Integer, Boolean> lengthCheck = (params,size) -> params.length == size;
 
-    }
-
-    private void rmUser(String[] params) {
-        if(params.length != 2) {
-            System.out.println("Provide 1 parameter!");
-            return;
-        }
-        String id = params[1];
-        Optional<User> oldUser = userService.getFromRepository(Long.valueOf(id));
-        oldUser.ifPresent( user -> {
-
-            friendshipService.removeAllFriends(user);
-
-            userService.removeFromRepository(Long.valueOf(id));
-            System.out.println(user);
-            System.out.println("User removed");
-
-        });
-
-    }
-
-    private void getAllUsers() {
-        System.out.println("All Users:");
-        userService.getAll().forEach(user -> System.out.println(user.toString()));
-    }
-
-    private void addFriendship(String[] params) {
-        if(params.length != 3) {
-            System.out.println("Provide 2 parameters!");
-            return;
-        }
-
-        Long firstId = Long.valueOf(params[1]);
-        Long secondId = Long.valueOf(params[2]);
-        Optional<Friendship> newFriendship = friendshipService.saveToRepository(firstId, secondId);
-        newFriendship.ifPresent( friendship -> {
-            System.out.println(friendship);
-            System.out.println("Friendship added!");
-        });
-
-    }
-
-    private void rmFriendship(String[] params) {
-        if(params.length != 3) {
-            System.out.println("Provide 2 parameters!");
-            return;
-        }
-
-        Long firstId = Long.valueOf(params[1]);
-        Long secondId = Long.valueOf(params[2]);
-
-        Optional<Friendship> oldFriendship = friendshipService.removeFromRepository(firstId, secondId);
-
-        oldFriendship.ifPresent(friendship -> {
-            System.out.println(friendship);
-            System.out.println("Friendship removed!");
-        });
-
-    }
-
-    private void getAllFriendships() {
-        System.out.println("All Friendships:");
-        friendshipService.getAll().forEach(friendship -> System.out.println(friendship.toString()));
-    }
-
-    private void showNetwork() {
-        System.out.println(friendshipService.showNetwork());
-    }
-
-    private void showComponentsNr() {
-        System.out.println(friendshipService.getCommunityNumber());
-    }
-
-    private void showComponents() {
-        System.out.println(friendshipService.getCommunities());
-    }
-
-    private void showMostSocial() {
-        System.out.println(friendshipService.getMostSocial());
-    }
-
-    private void addInitUsers() {
-        String[] user1= {"add_user", "a", "a"};
-        String[] user2 = {"add_user" , "b", "b"};
-        String[] user3 = {"add_user", "c", "c"};
-        String[] user4 = {"add_user", "d", "d"};
-        String[] user5 = {"add_user", "e", "e"};
-        String[] user6 = {"add_user", "f", "f"};
-        String[] user7 = {"add_user", "r", "f"};
-        String[] user8 = {"add_user", "t", "f"};
-        String[] user9 = {"add_user", "h", "f"};
-        addUser(user1);
-        addUser(user2);
-        addUser(user3);
-        addUser(user4);
-        addUser(user5);
-        addUser(user6);
-        addUser(user7);
-        addUser(user8);
-        addUser(user9);
-
-        String[] friendship1 = {"add_friendship","1", "2"};
-        String[] friendship2 = {"add_friendship","1", "3"};
-        String[] friendship3 = {"add_friendship","3", "4"};
-
-        String[] friendship4 = {"add_friendship","5", "6"};
-        String[] friendship5 = {"add_friendship","5", "7"};
-        String[] friendship6 = {"add_friendship","5", "8"};
-        String[] friendship7 = {"add_friendship","5", "9"};
-
-        addFriendship(friendship1);
-        addFriendship(friendship2);
-        addFriendship(friendship3);
-        addFriendship(friendship4);
-        addFriendship(friendship5);
-        addFriendship(friendship6);
-        addFriendship(friendship7);
-
-    }
-
-
-    public void run() {
-
-        addInitUsers();
-
-        while(true) {
-            String command = userInput.nextLine();
-            if(command.equalsIgnoreCase("exit"))
+        commands.put("add_user", params -> {
+            if(!lengthCheck.apply(params,3)) {
+                System.out.println("Provide 2 parameters!");
                 return;
+            }
+            String firstName = params[1];
+            String lastName = params[2];
 
-            if(command.equalsIgnoreCase(""))
-                continue;
+            //Try to add user
+            Optional<User> newUser = userService.saveToRepository(firstName,lastName);
 
-            String[] params = command.split("\\s");
+            newUser.ifPresent( user -> {
+                System.out.println(user);
+                System.out.println("User created!");
+            });
+        });
 
-            try {
-                switch (params[0]) {
-
-                    case "add_user":
-                        addUser(params);
-                        break;
-
-                    case "rm_user":
-                        rmUser(params);
-                        break;
-
-                    case "get_all_users":
-                        getAllUsers();
-                        break;
-
-                    case "add_friendship":
-                        addFriendship(params);
-                        break;
-
-                    case "rm_friendship":
-                        rmFriendship(params);
-                        break;
-
-                    case "get_all_friendships":
-                        getAllFriendships();
-                        break;
-
-                    case "show_network":
-                        showNetwork();
-                        break;
-
-
-                    case "get_components_nr":
-                        showComponentsNr();
-                        break;
-
-                    case "get_components":
-                        showComponents();
-                        break;
-
-                    case "get_most_social":
-                        showMostSocial();
-                        break;
-
-
-                    default:
-                        System.out.println("Incorrect command!");
-                }
-
-            }catch(IllegalArgumentException | ValidatorException | RepositoryException e) {
-                System.out.println(e.getMessage());
+        commands.put("rm_user", params -> {
+            if(!lengthCheck.apply(params,2)) {
+                System.out.println("Provide 1 parameter!");
+                return;
             }
 
+            String id = params[1];
+            //Try to get user
+            Optional<User> oldUser = userService.getFromRepository(Long.valueOf(id));
 
+            oldUser.ifPresent( user -> {
 
+                friendshipService.removeAllFriends(user);
 
-        }
+                Optional<User> oldUser2 = userService.removeFromRepository(Long.valueOf(id));
+                oldUser2.ifPresent( usr -> {
+                    System.out.println(usr);
+                    System.out.println("User removed");
+                });
 
+            });
+        });
+
+        commands.put("get_all_users", params -> {
+            System.out.println("All Users:");
+            userService.getAll().forEach(user -> System.out.println(user.toString()));
+        });
+
+        commands.put("add_friendship", params -> {
+            if(!lengthCheck.apply(params,3)) {
+                System.out.println("Provide 2 parameters!");
+                return;
+            }
+
+            Long firstId = Long.valueOf(params[1]);
+            Long secondId = Long.valueOf(params[2]);
+
+            //Try to add friendship
+            Optional<Friendship> newFriendship = friendshipService.saveToRepository(firstId, secondId);
+            newFriendship.ifPresent( friendship -> {
+                System.out.println(friendship);
+                System.out.println("Friendship added!");
+            });
+        });
+
+        commands.put("rm_friendship", params -> {
+            if(!lengthCheck.apply(params,3)) {
+                System.out.println("Provide 2 parameters!");
+                return;
+            }
+
+            Long firstId = Long.valueOf(params[1]);
+            Long secondId = Long.valueOf(params[2]);
+
+            //Try to remove friendship
+            Optional<Friendship> oldFriendship = friendshipService.removeFromRepository(firstId, secondId);
+
+            oldFriendship.ifPresent(friendship -> {
+                System.out.println(friendship);
+                System.out.println("Friendship removed!");
+            });
+
+        });
+
+        commands.put("get_all_friendships", params -> {
+            System.out.println("All Friendships:");
+            friendshipService.getAll().forEach(friendship -> System.out.println(friendship.toString()));
+        });
+
+        commands.put("show_network", params -> System.out.println(friendshipService.showNetwork()));
+
+        commands.put("get_components_nr", params -> System.out.println(friendshipService.getCommunityNumber()));
+
+        commands.put("get_components", params -> System.out.println(friendshipService.getCommunities()));
+
+        commands.put("get_most_social", params -> System.out.println(friendshipService.getMostSocial()));
+
+        commands.put("exit", params -> this.run = false);
 
     }
 
+    private void initRequests() {
+        //Get the commands from the command line
+        requestGetter = new Scanner(System.in)::nextLine;
+
+        //Process the command and call the handler function
+        requestHandler = command -> {
+            //Get command string and split the parameters
+            String[] params = command.split("\\s");
+
+            //Validate the command
+            Predicate<String> commandValidator = this.commands::containsKey;
+
+            //Execute the function
+            if(commandValidator.test(params[0]))
+                try {
+                    commands.get(params[0]).accept(params);
+                }catch(IllegalArgumentException | ValidatorException | RepositoryException e) {
+                    System.out.println(e.getMessage());
+                }
+            else {
+                System.out.println("Incorrect command!");
+            }
+        };
+    }
 
 
+    private void addInitialUsers() {
+
+        Arrays.asList(
+                //Initial Users
+                new String[]{"add_user", "a", "a"},
+                new String[]{"add_user" , "b", "b"},
+                new String[]{"add_user", "c", "c"},
+                new String[]{"add_user", "d", "d"},
+                new String[]{"add_user", "e", "e"},
+                new String[]{"add_user", "f", "f"},
+                new String[]{"add_user", "r", "f"},
+                new String[]{"add_user", "t", "f"},
+                new String[]{"add_user", "h", "f"},
+
+                //Initial Friendships
+                new String[]{"add_friendship","1", "2"},
+                new String[]{"add_friendship","1", "3"},
+                new String[]{"add_friendship","3", "4"},
+                new String[]{"add_friendship","5", "6"},
+                new String[]{"add_friendship","5", "7"},
+                new String[]{"add_friendship","5", "8"},
+                new String[]{"add_friendship","5", "9"}
+        ).forEach( command -> commands.get(command[0]).accept(command));
+    }
+
+    public void run() {
+        while(run)
+            this.requestHandler.accept(requestGetter.get());
+    }
 }
