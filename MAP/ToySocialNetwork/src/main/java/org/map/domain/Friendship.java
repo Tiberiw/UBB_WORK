@@ -10,7 +10,6 @@ public class Friendship extends Entity<Pair<Long,Long>>{
 
     private User user1;
     private User user2;
-
     private LocalDateTime date;
 
     public Friendship(User user1, User user2, LocalDateTime date) {
@@ -18,6 +17,13 @@ public class Friendship extends Entity<Pair<Long,Long>>{
         this.user2 = user2;
         this.date = date;
         this.id = createId(user1.getID(),user2.getID());
+    }
+
+    public Friendship(Pair<Long,Long> id, User user1, User user2, LocalDateTime date) {
+        this.id = id;
+        this.user1 = user1;
+        this.user2 = user2;
+        this.date = date;
     }
 
     private static Pair<Long,Long> createId(Long userId1, Long userId2) {
@@ -46,6 +52,10 @@ public class Friendship extends Entity<Pair<Long,Long>>{
 
     public void setDate(LocalDateTime date) {
         this.date = date;
+    }
+
+    public String getFormattedDate() {
+        return date.format(Utils.formatter);
     }
 
     @Override

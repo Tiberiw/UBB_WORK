@@ -1,16 +1,17 @@
-package org.map.repository;
+package org.map.repository.memory;
 
 import org.map.domain.Entity;
 import org.map.domain.User;
 import org.map.exception.RepositoryException;
 import org.map.exception.ValidatorException;
+import org.map.repository.Repository;
 import org.map.validator.Validator;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
-public class InMemoryRepository<ID, E extends Entity<ID> > implements Repository<ID,E>{
+public class InMemoryRepository<ID, E extends Entity<ID> > implements Repository<ID,E> {
 
     private final Map<ID,E> users;
     private final Validator<E> validator;

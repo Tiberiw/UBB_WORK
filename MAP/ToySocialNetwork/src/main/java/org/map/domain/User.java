@@ -6,11 +6,16 @@ public class User extends Entity<Long>{
 
     private String firstName;
     private String lastName;
-    private static Long currentIndex = 0L;
     public User(String firstName, String lastName) {
         this.firstName = firstName;
         this.lastName = lastName;
-        this.id = ++currentIndex;
+        this.id = null;
+    }
+
+    public User(Long id, String firstName, String lastName) {
+        this.id = id;
+        this.firstName = firstName;
+        this.lastName = lastName;
     }
 
     public User getInstance() {

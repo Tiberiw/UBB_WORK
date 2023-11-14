@@ -25,7 +25,6 @@ public class ConsoleUI {
         this.run = true;
         initCommands();
         initRequests();
-        addInitialUsers();
     }
 
     private void initCommands() {
@@ -43,10 +42,7 @@ public class ConsoleUI {
             //Try to add user
             Optional<User> newUser = userService.saveToRepository(firstName,lastName);
 
-            newUser.ifPresent( user -> {
-                System.out.println(user);
-                System.out.println("User created!");
-            });
+            newUser.ifPresent( user -> System.out.println("User created!"));
         });
 
         commands.put("rm_user", params -> {
@@ -77,8 +73,15 @@ public class ConsoleUI {
             userService.getAll().forEach(user -> System.out.println(user.toString()));
         });
 
+
         commands.put("add_friendship", params -> {
-            if(!lengthCheck.apply(params,3)) {
+
+            String date;
+            if(lengthCheck.apply(params,3)) {
+               date = "";
+            } else if (lengthCheck.apply(params,4)) {
+                date = params[3];
+            }else {
                 System.out.println("Provide 2 parameters!");
                 return;
             }
@@ -86,8 +89,9 @@ public class ConsoleUI {
             Long firstId = Long.valueOf(params[1]);
             Long secondId = Long.valueOf(params[2]);
 
+
             //Try to add friendship
-            Optional<Friendship> newFriendship = friendshipService.saveToRepository(firstId, secondId);
+            Optional<Friendship> newFriendship = friendshipService.saveToRepository(firstId, secondId, date);
             newFriendship.ifPresent( friendship -> {
                 System.out.println(friendship);
                 System.out.println("Friendship added!");
@@ -113,9 +117,44 @@ public class ConsoleUI {
 
         });
 
+        commands.put("mod_friendship", params -> {
+            if(!lengthCheck.apply(params,4)) {
+                System.out.println("Provide 3 parameters!");
+                return;
+            }
+            Long firstId = Long.valueOf(params[1]);
+            Long secondId = Long.valueOf(params[2]);
+            String date = params[3];
+            Optional<Friendship> friendship = friendshipService.updateToRepository(firstId, secondId, date);
+            friendship.ifPresent( oldFr -> System.out.println("Friendship updated!"));
+        });
+
         commands.put("get_all_friendships", params -> {
             System.out.println("All Friendships:");
             friendshipService.getAll().forEach(friendship -> System.out.println(friendship.toString()));
+        });
+
+        ///TODO ADD FEATURE AFTER DB Repo
+        commands.put("get_fr_user", params -> {
+            if(!lengthCheck.apply(params,2)) {
+                System.out.println("Provide 1 parameter!");
+                return;
+            }
+            Long userId = Long.valueOf(params[1]);
+            Optional<User> user = userService.getFromRepository(userId);
+            friendshipService.getAllFriendsUser(userId).forEach(System.out::println);
+
+        });
+
+        commands.put("get_fr_user_month", params -> {
+            if(!lengthCheck.apply(params,3)) {
+                System.out.println("Provide 2 parameters!");
+                return;
+            }
+            Long userId = Long.valueOf(params[1]);
+            Optional<User> user = userService.getFromRepository(userId);
+            friendshipService.getAllFriendsUserMonth(userId, params[2]).forEach(System.out::println);
+
         });
 
         commands.put("show_network", params -> System.out.println(friendshipService.showNetwork()));
@@ -156,30 +195,6 @@ public class ConsoleUI {
     }
 
 
-    private void addInitialUsers() {
-
-        Arrays.asList(
-                //Initial Users
-                new String[]{"add_user", "a", "a"},
-                new String[]{"add_user" , "b", "b"},
-                new String[]{"add_user", "c", "c"},
-                new String[]{"add_user", "d", "d"},
-                new String[]{"add_user", "e", "e"},
-                new String[]{"add_user", "f", "f"},
-                new String[]{"add_user", "r", "f"},
-                new String[]{"add_user", "t", "f"},
-                new String[]{"add_user", "h", "f"},
-
-                //Initial Friendships
-                new String[]{"add_friendship","1", "2"},
-                new String[]{"add_friendship","1", "3"},
-                new String[]{"add_friendship","3", "4"},
-                new String[]{"add_friendship","5", "6"},
-                new String[]{"add_friendship","5", "7"},
-                new String[]{"add_friendship","5", "8"},
-                new String[]{"add_friendship","5", "9"}
-        ).forEach( command -> commands.get(command[0]).accept(command));
-    }
 
     public void run() {
         while(run)
