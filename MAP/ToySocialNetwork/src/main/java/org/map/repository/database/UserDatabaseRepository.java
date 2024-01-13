@@ -11,9 +11,9 @@ import java.util.Set;
 
 public class UserDatabaseRepository implements Repository<Long, User> {
 
-    private String url;
-    private String username;
-    private String password;
+    private final String url;
+    private final String username;
+    private final String password;
 
     private final Validator<User> validator;
 

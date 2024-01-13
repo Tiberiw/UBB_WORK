@@ -15,7 +15,6 @@ public class FriendshipValidator implements Validator<Friendship> {
         User secondUser = entity.getSecondUser();
         userValidator.validate(firstUser);
         userValidator.validate(secondUser);
-        
         if(Objects.equals(firstUser.getID(), secondUser.getID()))
             throw new ValidatorException("Users IDs are the same!");
     }

@@ -52,20 +52,14 @@ public class ConsoleUI {
             }
 
             String id = params[1];
-            //Try to get user
-            Optional<User> oldUser = userService.getFromRepository(Long.valueOf(id));
 
-            oldUser.ifPresent( user -> {
-
-                friendshipService.removeAllFriends(user);
-
-                Optional<User> oldUser2 = userService.removeFromRepository(Long.valueOf(id));
-                oldUser2.ifPresent( usr -> {
-                    System.out.println(usr);
-                    System.out.println("User removed");
-                });
-
+            Optional<User> oldUser = userService.removeFromRepository(Long.valueOf(id));
+            oldUser.ifPresent( usr -> {
+                System.out.println(usr);
+                System.out.println("User removed");
             });
+
+
         });
 
         commands.put("get_all_users", params -> {
