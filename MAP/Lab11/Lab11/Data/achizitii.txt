@@ -1,0 +1,11 @@
+a1, Canapea, 3, 900, d2
+a2, Matura, 20, 20, d6
+a3, Kiwi, 199, 2, d4
+a4, Monitor, 50, 1000, d3
+a5, Tricou, 100, 200, d1
+a6, Netflix, 1, 50, d5
+a7, Banane, 10, 1.5, d4
+a8, Paine, 20, 2, d4
+a9, Covor, 5, 300, d6
+a10, Congelator, 3, 1000, d2
+a11, Tastatura, 20, 400, d3 

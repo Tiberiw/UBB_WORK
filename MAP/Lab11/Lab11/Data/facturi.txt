@@ -1,0 +1,6 @@
+d6,04/05/2022 11:47,Utilities
+d4,03/02/2021 11:47,Groceries
+d3,01/01/2023 11:47,Electronics
+d1,03/02/2022 11:47,Fashion
+d2,22/10/2022 11:47,Utilities
+d5,10/01/2024 11:47,Entertainment
